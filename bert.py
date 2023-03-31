@@ -42,7 +42,7 @@ num_training_steps = num_epochs * len(train_dataloader)
 num_warmup_steps = 0
 criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
-lr_scheduler = get_scheduler(name="linear", optimizer=optimizer, num_warmup_steps=0, num_training_steps=num_training_steps)
+lr_scheduler = get_scheduler(name="linear", optimizer=optimizer, num_warmup_steps=num_warmup_steps, num_training_steps=num_training_steps)
 
 # Training loop
 for epoch in range(num_epochs):
