@@ -1,7 +1,7 @@
 import os
 import torch
 import torch.nn as nn
-from transformers import BertForQuestionAnswering, BertTokenizer
+from transformers import BertForQuestionAnswering, AutoTokenizer
 from transformers import get_scheduler
 from dataset import SquadDataset
 
@@ -29,7 +29,7 @@ num_epochs = 10
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Load tokenizer and model
-tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
+tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
 model = BertForQuestionAnswering.from_pretrained(load_path).to(device)
 
 # Load dataset and dataloaders
