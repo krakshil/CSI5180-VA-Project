@@ -11,7 +11,7 @@ bert_dir = "model_weights/BERT/"
 if not os.path.exists(bert_dir):
     os.makedirs(bert_dir)
 
-save_path = bert_dir + "" # add date_time as name
+save_path = bert_dir + "01-04-2023-10-57" # add date_time as name
 load_model = False # change to True if weights saved locally and resuming training from between.
 
 if load_model:
@@ -23,8 +23,9 @@ else:
     load_path = "bert-base-uncased"
 
 # Define hyperparameters
-batch_size = 16
-learning_rate = 2e-5
+batch_size = 8
+learning_rate = 1e-5
+weight_decay = 0.01
 num_epochs = 10
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -33,15 +34,15 @@ tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
 model = BertForQuestionAnswering.from_pretrained(load_path).to(device)
 
 # Load dataset and dataloaders
-squad_dataset = SquadDataset(tokenizer, max_length=512, batch_size=batch_size)
+squad_dataset = SquadDataset(tokenizer, max_length=384, batch_size=batch_size)
 train_dataloader = squad_dataset.train_dataloader
 eval_dataloader = squad_dataset.eval_dataloader
 
 # Define loss function and optimizer
 num_training_steps = num_epochs * len(train_dataloader)
-num_warmup_steps = 0
+num_warmup_steps = len(train_dataloader)
 criterion = nn.CrossEntropyLoss()
-optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
+optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
 lr_scheduler = get_scheduler(name="linear", optimizer=optimizer, num_warmup_steps=num_warmup_steps, num_training_steps=num_training_steps)
 
 # Training loop
@@ -68,7 +69,7 @@ for epoch in range(num_epochs):
         train_loss += loss.item() * input_ids.size(0)
 
         if batch_idx % 500 == 0:
-            print(f"Train Epoch: {epoch+1}/{num_epochs}, Batch: {batch_idx}/{len(train_dataloader)}, Loss: {loss.item()}", end="\r")
+            print(f"Train Epoch: {epoch+1}/{num_epochs}, Batch: {batch_idx}/{len(train_dataloader)}, Loss: {loss.item():.4f}", end="\r")
     
     model.save_pretrained(save_path)
 
@@ -87,10 +88,10 @@ for epoch in range(num_epochs):
 
             eval_loss += loss.item() * input_ids.size(0)
             if (batch_idx) % 100 == 0:
-                print(f"Eval Epoch: {epoch+1}/{num_epochs}, Batch: {batch_idx}/{len(eval_dataloader)}, Loss: {loss.item()}", end="\r")
+                print(f"Eval Epoch: {epoch+1}/{num_epochs}, Batch: {batch_idx}/{len(eval_dataloader)}, Loss: {loss.item():.4f}", end="\r")
 
 
     train_loss /= len(squad_dataset.train_dataset)
     eval_loss /= len(squad_dataset.eval_dataset)
     
-    print(f"Train Loss: {train_loss:.4f}, Eval Loss: {eval_loss:.4f}")
+    print(f"Train Loss: {train_loss:.8f}, Eval Loss: {eval_loss:.8f}")
