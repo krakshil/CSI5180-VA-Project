@@ -5,39 +5,6 @@ from transformers import BertModel, BertForQuestionAnswering, AutoTokenizer
 from transformers import get_scheduler
 from dataset import SquadDataset
 
-# Define Custom Bert Model
-
-class Bert(nn.Module):
-    def __init__(self, pretrained_path=None, out_dim=768):
-        super(Bert, self).__init__()
-        if pretrained_path is None:
-            self.bert = BertModel.from_pretrained("bert-base-uncased")
-        else:
-            self.bert = BertModel.from_pretrained(pretrained_path)
-        
-        self.drop_out = nn.Dropout(0.1)
-        self.l1 = nn.Linear(out_dim * 2, out_dim * 2)
-        self.l2 = nn.Linear(out_dim * 2, 2)
-        self.linear_relu_stack = nn.Sequential(
-            self.drop_out,
-            self.l1,
-            nn.LeakyReLU(),
-            self.l2 
-        )
-        
-    def forward(self, input_ids, attention_mask, token_type_ids):
-        model_output = self.bert(input_ids, attention_mask=attention_mask, token_type_ids=token_type_ids, output_hidden_states=True)
-        hidden_states = model_output[2]
-        out = torch.cat((hidden_states[-1], hidden_states[-3]), dim=-1)  # taking Start logits from last BERT layer, End Logits from third to last layer
-        logits = self.linear_relu_stack(out)
-        
-        start_logits, end_logits = logits.split(1, dim=-1)
-        
-        start_logits = start_logits.squeeze(-1)
-        end_logits = end_logits.squeeze(-1)
-
-        return start_logits, end_logits
-
 # Define save and load path
 bert_dir = "model_weights/BERT/"
 
@@ -57,15 +24,14 @@ else:
 
 # Define hyperparameters
 batch_size = 8
-learning_rate = 1e-5
-weight_decay = 0.01
+learning_rate = 2e-5
+weight_decay = 0.05
 num_epochs = 10
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Load tokenizer and model
 tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
-# model = BertForQuestionAnswering.from_pretrained(load_path).to(device)
-model = Bert().to(device)
+model = BertForQuestionAnswering.from_pretrained(load_path).to(device)
 
 # Load dataset and dataloaders
 squad_dataset = SquadDataset(tokenizer, max_length=384, batch_size=batch_size)
@@ -77,7 +43,7 @@ num_training_steps = num_epochs * len(train_dataloader)
 num_warmup_steps = len(train_dataloader)
 criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
-lr_scheduler = get_scheduler(name="linear", optimizer=optimizer, num_warmup_steps=num_warmup_steps, num_training_steps=num_training_steps)
+lr_scheduler = get_scheduler(name="exponential", optimizer=optimizer, num_warmup_steps=num_warmup_steps, num_training_steps=num_training_steps)
 
 # Training loop
 for epoch in range(num_epochs):
