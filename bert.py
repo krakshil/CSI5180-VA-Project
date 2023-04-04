@@ -1,9 +1,42 @@
 import os
 import torch
 import torch.nn as nn
-from transformers import BertForQuestionAnswering, AutoTokenizer
+from transformers import BertModel, BertForQuestionAnswering, AutoTokenizer
 from transformers import get_scheduler
 from dataset import SquadDataset
+
+# Define Custom Bert Model
+
+class Bert(nn.Module):
+    def __init__(self, pretrained_path=None, out_dim=768):
+        super(Bert, self).__init__()
+        if pretrained_path is None:
+            self.bert = BertModel.from_pretrained("bert-base-uncased")
+        else:
+            self.bert = BertModel.from_pretrained(pretrained_path)
+        
+        self.drop_out = nn.Dropout(0.1)
+        self.l1 = nn.Linear(out_dim * 2, out_dim * 2)
+        self.l2 = nn.Linear(out_dim * 2, 2)
+        self.linear_relu_stack = nn.Sequential(
+            self.drop_out,
+            self.l1,
+            nn.LeakyReLU(),
+            self.l2 
+        )
+        
+    def forward(self, input_ids, attention_mask, token_type_ids):
+        model_output = self.bert(input_ids, attention_mask=attention_mask, token_type_ids=token_type_ids, output_hidden_states=True)
+        hidden_states = model_output[2]
+        out = torch.cat((hidden_states[-1], hidden_states[-3]), dim=-1)  # taking Start logits from last BERT layer, End Logits from third to last layer
+        logits = self.linear_relu_stack(out)
+        
+        start_logits, end_logits = logits.split(1, dim=-1)
+        
+        start_logits = start_logits.squeeze(-1)
+        end_logits = end_logits.squeeze(-1)
+
+        return start_logits, end_logits
 
 # Define save and load path
 bert_dir = "model_weights/BERT/"
@@ -31,7 +64,8 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Load tokenizer and model
 tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
-model = BertForQuestionAnswering.from_pretrained(load_path).to(device)
+# model = BertForQuestionAnswering.from_pretrained(load_path).to(device)
+model = Bert().to(device)
 
 # Load dataset and dataloaders
 squad_dataset = SquadDataset(tokenizer, max_length=384, batch_size=batch_size)
@@ -71,7 +105,8 @@ for epoch in range(num_epochs):
         if batch_idx % 500 == 0:
             print(f"Train Epoch: {epoch+1}/{num_epochs}, Batch: {batch_idx}/{len(train_dataloader)}, Loss: {loss.item():.4f}", end="\r")
     
-    model.save_pretrained(save_path)
+    # model.save_pretrained(save_path)
+    model.save(save_path)
 
     # Evaluate
     model.eval()
