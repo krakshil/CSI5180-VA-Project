@@ -21,14 +21,14 @@ squad_dataset = SquadDataset(tokenizer, max_length=384, batch_size=batch_size, e
 eval_dataloader = squad_dataset.eval_dataloader
 
 # Define Metrics functions
-acc_fn_1 = Accuracy("multiclass", num_classes=384, top_k=1)
-f1_fn_1 = F1Score("multiclass", num_classes=384, top_k=1)
+acc_fn_1 = Accuracy("multiclass", num_classes=384, top_k=1).to(device)
+f1_fn_1 = F1Score("multiclass", num_classes=384, top_k=1).to(device)
 
-acc_fn_3 = Accuracy("multiclass", num_classes=384, top_k=3)
-f1_fn_3 = F1Score("multiclass", num_classes=384, top_k=3)
+acc_fn_3 = Accuracy("multiclass", num_classes=384, top_k=3).to(device)
+f1_fn_3 = F1Score("multiclass", num_classes=384, top_k=3).to(device)
 
-acc_fn_5 = Accuracy("multiclass", num_classes=384, top_k=5)
-f1_fn_5 = F1Score("multiclass", num_classes=384, top_k=5)
+acc_fn_5 = Accuracy("multiclass", num_classes=384, top_k=5).to(device)
+f1_fn_5 = F1Score("multiclass", num_classes=384, top_k=5).to(device)
 
 # Evaluate
 model.eval()
@@ -50,6 +50,8 @@ with torch.no_grad():
         
         start_f1_1, start_f1_3, start_f1_5 = f1_fn_1(start_logits, start_positions), f1_fn_3(start_logits, start_positions), f1_fn_5(start_logits, start_positions) 
         end_f1_1, end_f1_3, end_f1_5 = f1_fn_1(end_logits, end_positions), f1_fn_3(end_logits, end_positions), f1_fn_5(end_logits, end_positions)
+        
+        eval_loss += loss.item() * input_ids.size(0)
         
         top1_acc += ((start_acc_1 * input_ids.size(0)) + (end_acc_1 * input_ids.size(0)))/2
         top3_acc += ((start_acc_3 * input_ids.size(0)) + (end_acc_3 * input_ids.size(0)))/2
