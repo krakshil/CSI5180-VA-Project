@@ -13,7 +13,7 @@ batch_size = 8
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Load tokenizer and model
-tokenizer = AutoTokenizer.from_pretrained("xlnet-base-cased")
+tokenizer = AutoTokenizer.from_pretrained("xlnet-base-cased", padding_side="right")
 model = XLNetForQuestionAnsweringSimple.from_pretrained(load_path).to(device)
 
 # Load dataset and dataloaders

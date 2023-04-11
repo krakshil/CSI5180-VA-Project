@@ -11,7 +11,7 @@ xlnet_dir = "model_weights/XLNet/"
 if not os.path.exists(xlnet_dir):
     os.makedirs(xlnet_dir)
 
-save_path = xlnet_dir + "01-04-2023-10-57" # add date_time as name
+save_path = xlnet_dir + "11-04-2023-17-30" # add date_time as name
 load_model = False # change to True if weights saved locally and resuming training from between.
 
 if load_model:
@@ -30,7 +30,7 @@ num_epochs = 10
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Load tokenizer and model
-tokenizer = AutoTokenizer.from_pretrained("xlnet-base-cased")
+tokenizer = AutoTokenizer.from_pretrained("xlnet-base-cased", padding_size="right")
 model = XLNetForQuestionAnsweringSimple.from_pretrained(load_path).to(device)
 
 # Load dataset and dataloaders
@@ -64,14 +64,14 @@ for epoch in range(num_epochs):
         loss = outputs.loss
         loss.backward()
         optimizer.step()
-        lr_scheduler.step()
 
         train_loss += loss.item() * input_ids.size(0)
 
-        if batch_idx % 500 == 0:
+        if batch_idx % 50 == 0:
             print(f"Train Epoch: {epoch+1}/{num_epochs}, Batch: {batch_idx}/{len(train_dataloader)}, Loss: {loss.item():.4f}", end="\r")
     
     # model.save_pretrained(save_path)
+    lr_scheduler.step()
     model.save(save_path)
 
     # Evaluate
@@ -88,7 +88,7 @@ for epoch in range(num_epochs):
             loss = outputs.loss
 
             eval_loss += loss.item() * input_ids.size(0)
-            if (batch_idx) % 100 == 0:
+            if (batch_idx) % 50 == 0:
                 print(f"Eval Epoch: {epoch+1}/{num_epochs}, Batch: {batch_idx}/{len(eval_dataloader)}, Loss: {loss.item():.4f}", end="\r")
 
 
