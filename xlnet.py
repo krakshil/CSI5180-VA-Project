@@ -6,16 +6,16 @@ from transformers import get_scheduler
 from dataset import SquadDataset
 
 # Define save and load path
-bert_dir = "model_weights/XLNet/"
+xlnet_dir = "model_weights/XLNet/"
 
-if not os.path.exists(bert_dir):
-    os.makedirs(bert_dir)
+if not os.path.exists(xlnet_dir):
+    os.makedirs(xlnet_dir)
 
-save_path = bert_dir + "01-04-2023-10-57" # add date_time as name
+save_path = xlnet_dir + "01-04-2023-10-57" # add date_time as name
 load_model = False # change to True if weights saved locally and resuming training from between.
 
 if load_model:
-    load_path = bert_dir + "" # add date_time as name
+    load_path = xlnet_dir + "" # add date_time as name
     if not os.path.exists(load_path):
         load_model=False
         load_path = "xlnet-base-cased"

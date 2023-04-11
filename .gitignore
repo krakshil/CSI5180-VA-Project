@@ -1,0 +1,2 @@
+model_weights/**/**/*.bin
+model_weights/**/*.zip

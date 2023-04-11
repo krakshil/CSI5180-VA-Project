@@ -4,18 +4,19 @@ from datasets import load_dataset
 
 
 class SquadDataset:
-    def __init__(self, tokenizer, max_length, batch_size):
+    def __init__(self, tokenizer, max_length, batch_size, eval=False):
         self.tokenizer = tokenizer
         self.max_length = max_length
         self.batch_size = batch_size
-        
-        self.train_dataset = load_dataset("squad")["train"]
-        self.preprocessed_train_dataset = self.train_dataset.map(self.preprocess, batched=True, remove_columns=self.train_dataset.column_names).with_format("torch")
+        self.eval = eval
+
+        if not self.eval:
+            self.train_dataset = load_dataset("squad")["train"]
+            self.preprocessed_train_dataset = self.train_dataset.map(self.preprocess, batched=True, remove_columns=self.train_dataset.column_names).with_format("torch")
+            self.train_dataloader = DataLoader(self.preprocessed_train_dataset, batch_size=self.batch_size)
         
         self.eval_dataset = load_dataset("squad")["validation"]
         self.preprocessed_eval_dataset = self.eval_dataset.map(self.preprocess, batched=True, remove_columns=self.eval_dataset.column_names).with_format("torch")
-    
-        self.train_dataloader = DataLoader(self.preprocessed_train_dataset, batch_size=self.batch_size)
         self.eval_dataloader = DataLoader(self.preprocessed_eval_dataset, batch_size=self.batch_size)
 
 
