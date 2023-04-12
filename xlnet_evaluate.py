@@ -6,7 +6,7 @@ from dataset import SquadDataset
 # Define save and load path
 xlnet_dir = "model_weights/XLNet/"
 
-load_path = xlnet_dir + "08-04-2023-01-51" # add date_time as name
+load_path = xlnet_dir + "06-04-2023-01-51" # add date_time as name
 
 # Define hyperparameters
 batch_size = 8

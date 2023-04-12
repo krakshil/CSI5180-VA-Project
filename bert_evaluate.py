@@ -6,7 +6,7 @@ from dataset import SquadDataset
 # Define save and load path
 bert_dir = "model_weights/BERT/"
 
-load_path = bert_dir + "01-04-2023-10-57" # add date_time as name
+load_path = bert_dir + "04-04-2023-15-41" # add date_time as name
 
 # Define hyperparameters
 batch_size = 8

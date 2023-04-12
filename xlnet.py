@@ -11,7 +11,7 @@ xlnet_dir = "model_weights/XLNet/"
 if not os.path.exists(xlnet_dir):
     os.makedirs(xlnet_dir)
 
-save_path = xlnet_dir + "11-04-2023-17-30" # add date_time as name
+save_path = xlnet_dir + "06-04-2023-17-30" # add date_time as name
 load_model = False # change to True if weights saved locally and resuming training from between.
 
 if load_model:
@@ -64,6 +64,7 @@ for epoch in range(num_epochs):
         loss = outputs.loss
         loss.backward()
         optimizer.step()
+        lr_scheduler.step()
 
         train_loss += loss.item() * input_ids.size(0)
 
@@ -71,7 +72,6 @@ for epoch in range(num_epochs):
             print(f"Train Epoch: {epoch+1}/{num_epochs}, Batch: {batch_idx}/{len(train_dataloader)}, Loss: {loss.item():.4f}", end="\r")
     
     # model.save_pretrained(save_path)
-    lr_scheduler.step()
     model.save(save_path)
 
     # Evaluate

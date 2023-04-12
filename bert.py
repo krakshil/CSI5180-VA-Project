@@ -11,7 +11,7 @@ bert_dir = "model_weights/BERT/"
 if not os.path.exists(bert_dir):
     os.makedirs(bert_dir)
 
-save_path = bert_dir + "01-04-2023-10-57" # add date_time as name
+save_path = bert_dir + "04-04-2023-10-57" # add date_time as name
 load_model = False # change to True if weights saved locally and resuming training from between.
 
 if load_model:
@@ -64,7 +64,6 @@ for epoch in range(num_epochs):
         loss = outputs.loss
         loss.backward()
         optimizer.step()
-        lr_scheduler.step()
 
         train_loss += loss.item() * input_ids.size(0)
 
@@ -72,6 +71,7 @@ for epoch in range(num_epochs):
             print(f"Train Epoch: {epoch+1}/{num_epochs}, Batch: {batch_idx}/{len(train_dataloader)}, Loss: {loss.item():.4f}", end="\r")
     
     # model.save_pretrained(save_path)
+    lr_scheduler.step()
     model.save(save_path)
 
     # Evaluate
